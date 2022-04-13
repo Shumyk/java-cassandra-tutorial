@@ -50,7 +50,9 @@ public class Connector {
      */
     public static void close() {
         if (!cluster.isClosed()) {
+            log.info("Initiate shutdown of cluster instance");
             cluster.close();
+            log.info("Cluster instance shutdown finished");
         }
     }
 }
