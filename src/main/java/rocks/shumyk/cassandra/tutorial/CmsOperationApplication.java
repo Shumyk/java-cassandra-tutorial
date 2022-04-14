@@ -1,8 +1,12 @@
 package rocks.shumyk.cassandra.tutorial;
 
 import lombok.extern.slf4j.Slf4j;
+import rocks.shumyk.cassandra.tutorial.data.Listing;
+import rocks.shumyk.cassandra.tutorial.data.dummy.DummyData;
 import rocks.shumyk.cassandra.tutorial.persistence.Connector;
+import rocks.shumyk.cassandra.tutorial.persistence.PersistenceOperation;
 
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -16,8 +20,9 @@ public class CmsOperationApplication {
 
     public static void main(String[] args) {
 //        createKeyspace(KEYSPACE_CMS);
-        createColumnFamily(KEYSPACE_CMS, COLUMN_FAMILY_LISTINGS);
-        checkColumnFamilyCreated(KEYSPACE_CMS, COLUMN_FAMILY_LISTINGS);
+//        createColumnFamily(KEYSPACE_CMS, COLUMN_FAMILY_LISTINGS);
+//        checkColumnFamilyCreated(KEYSPACE_CMS, COLUMN_FAMILY_LISTINGS);
+        populateColumnFamilyWithData(KEYSPACE_CMS, COLUMN_FAMILY_LISTINGS, DummyData.dummyListing());
 
         Connector.close();
     }
@@ -59,5 +64,17 @@ public class CmsOperationApplication {
                         value -> log.info("column family '{}' exists in keyspace '{}'", columnFamilyName, keyspace),
                         () -> log.info("column family '{}' doesn't exist.", columnFamilyName)
                 );
+    }
+
+    // todo: make it more abstract (avoid Listing to more abstract data type)
+    private static void populateColumnFamilyWithData(final String keyspace,
+                                                     final String columnFamily,
+                                                     final List<Listing> data) {
+        data.stream()
+                .map(Listing::finalizeAttributes)
+                .forEach(l -> PersistenceOperation
+                                .builder(keyspace, columnFamily)
+                                .insert(l));
+        log.info("Populated column family '{}.{}' with dummy data", keyspace, columnFamily);
     }
 }
