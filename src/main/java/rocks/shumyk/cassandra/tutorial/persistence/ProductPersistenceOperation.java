@@ -32,6 +32,7 @@ public record ProductPersistenceOperation(String keyspace, String columnFamily) 
                 .collect(Collectors.toList());
     }
 
+    // todo: use hibernate to avoid such mapping functions
     private Product covertRowToProduct(final Row row) {
         final AtomicReference<String> productId = new AtomicReference<>();
         final Map<String, Object> attributes = Maps.newHashMap();

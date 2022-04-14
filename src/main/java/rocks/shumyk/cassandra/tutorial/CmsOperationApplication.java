@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.util.Arrays.asList;
+import static rocks.shumyk.cassandra.tutorial.data.AttributeName.PRODUCTID;
 
 @Slf4j
 public class CmsOperationApplication {
@@ -47,17 +48,19 @@ public class CmsOperationApplication {
             "PRIMARY KEY (category, brand, productId));";
 
     public static void main(String[] args) {
-        createKeyspace(KEYSPACE_CMS);
+//        createKeyspace(KEYSPACE_CMS);
+//
+//        createColumnFamily(KEYSPACE_CMS, COLUMN_FAMILY_LISTINGS, CREATE_COLUMN_FAMILY_LISTINGS_QUERY);
+//        checkColumnFamilyCreated(KEYSPACE_CMS, COLUMN_FAMILY_LISTINGS);
+//        populateColumnFamilyWithData(KEYSPACE_CMS, COLUMN_FAMILY_LISTINGS, DummyData.dummyListing());
+//
+//        createColumnFamily(KEYSPACE_CMS, COLUMN_FAMILY_PRODUCTS, CREATE_COLUMN_FAMILY_PRODUCTS_QUERY);
+//        checkColumnFamilyCreated(KEYSPACE_CMS, COLUMN_FAMILY_PRODUCTS);
+//        populateColumnFamilyWithData(KEYSPACE_CMS, COLUMN_FAMILY_PRODUCTS, DummyData.dummyProducts());
+//
+//        getProductsForCategoriesAndBrand();
 
-        createColumnFamily(KEYSPACE_CMS, COLUMN_FAMILY_LISTINGS, CREATE_COLUMN_FAMILY_LISTINGS_QUERY);
-        checkColumnFamilyCreated(KEYSPACE_CMS, COLUMN_FAMILY_LISTINGS);
-        populateColumnFamilyWithData(KEYSPACE_CMS, COLUMN_FAMILY_LISTINGS, DummyData.dummyListing());
-
-        createColumnFamily(KEYSPACE_CMS, COLUMN_FAMILY_PRODUCTS, CREATE_COLUMN_FAMILY_PRODUCTS_QUERY);
-        checkColumnFamilyCreated(KEYSPACE_CMS, COLUMN_FAMILY_PRODUCTS);
-        populateColumnFamilyWithData(KEYSPACE_CMS, COLUMN_FAMILY_PRODUCTS, DummyData.dummyProducts());
-
-        getProductsForCategoriesAndBrand();
+        deleteListings();
 
         Connector.close();
     }
@@ -108,5 +111,11 @@ public class CmsOperationApplication {
         final var products = operation.getProductsForCategoriesAndBrand(asList("sofa", "chair"), "Fab");
 
         log.info("Fetched products for categories 'sofa', 'chair' and brand 'Fab': \n{}", products);
+    }
+
+    public static void deleteListings() {
+        final var deleteOperation = new PersistenceOperation(KEYSPACE_CMS, COLUMN_FAMILY_LISTINGS);
+        deleteOperation.delete(PRODUCTID.value(), asList("CHA1", "TOP1"));
+        log.info("Deleted listing items with ID 'CHA1' and 'TOP1'");
     }
 }
