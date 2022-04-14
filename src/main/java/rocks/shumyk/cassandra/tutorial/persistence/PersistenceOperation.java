@@ -3,16 +3,11 @@ package rocks.shumyk.cassandra.tutorial.persistence;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.ThreadLocalMonotonicTimestampGenerator;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
-import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
 
-@RequiredArgsConstructor(staticName = "builder")
-public class PersistenceOperation {
-
-    private final String keyspace;
-    private final String columnFamily;
+public record PersistenceOperation(String keyspace, String columnFamily) {
 
     public void insert(final Map<String, Object> values) {
         final var insertStatement = QueryBuilder.insertInto(keyspace, columnFamily);

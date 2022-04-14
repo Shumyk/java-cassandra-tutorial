@@ -87,15 +87,13 @@ public class CmsOperationApplication {
                 );
     }
 
-    // todo: make it more abstract (avoid Listing to more abstract data type)
     private static void populateColumnFamilyWithData(final String keyspace,
                                                      final String columnFamily,
                                                      final List<? extends AttributeBasedData> data) {
+        final var persistenceOperation = new PersistenceOperation(keyspace, columnFamily);
         data.stream()
                 .map(AttributeBasedData::finalizeAttributes)
-                .forEach(l -> PersistenceOperation
-                        .builder(keyspace, columnFamily)
-                        .insert(l));
+                .forEach(persistenceOperation::insert);
         log.info("Populated column family '{}.{}' with dummy data", keyspace, columnFamily);
     }
 }
