@@ -2,12 +2,16 @@ package rocks.shumyk.cassandra.tutorial;
 
 import lombok.extern.slf4j.Slf4j;
 import rocks.shumyk.cassandra.tutorial.data.AttributeBasedData;
+import rocks.shumyk.cassandra.tutorial.data.Product;
 import rocks.shumyk.cassandra.tutorial.data.dummy.DummyData;
 import rocks.shumyk.cassandra.tutorial.persistence.Connector;
 import rocks.shumyk.cassandra.tutorial.persistence.PersistenceOperation;
+import rocks.shumyk.cassandra.tutorial.persistence.ProductPersistenceOperation;
 
 import java.util.List;
 import java.util.Optional;
+
+import static java.util.Arrays.asList;
 
 @Slf4j
 public class CmsOperationApplication {
@@ -53,6 +57,8 @@ public class CmsOperationApplication {
         checkColumnFamilyCreated(KEYSPACE_CMS, COLUMN_FAMILY_PRODUCTS);
         populateColumnFamilyWithData(KEYSPACE_CMS, COLUMN_FAMILY_PRODUCTS, DummyData.dummyProducts());
 
+        getProductsForCategoriesAndBrand();
+
         Connector.close();
     }
 
@@ -95,5 +101,12 @@ public class CmsOperationApplication {
                 .map(AttributeBasedData::finalizeAttributes)
                 .forEach(persistenceOperation::insert);
         log.info("Populated column family '{}.{}' with dummy data", keyspace, columnFamily);
+    }
+
+    private static void getProductsForCategoriesAndBrand() {
+        final var operation = new ProductPersistenceOperation(KEYSPACE_CMS, COLUMN_FAMILY_PRODUCTS);
+        final var products = operation.getProductsForCategoriesAndBrand(asList("sofa", "chair"), "Fab");
+
+        log.info("Fetched products for categories 'sofa', 'chair' and brand 'Fab': \n{}", products);
     }
 }
