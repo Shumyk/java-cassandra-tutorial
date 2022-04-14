@@ -1,7 +1,7 @@
 package rocks.shumyk.cassandra.tutorial;
 
 import lombok.extern.slf4j.Slf4j;
-import rocks.shumyk.cassandra.tutorial.data.Listing;
+import rocks.shumyk.cassandra.tutorial.data.AttributeBasedData;
 import rocks.shumyk.cassandra.tutorial.data.dummy.DummyData;
 import rocks.shumyk.cassandra.tutorial.persistence.Connector;
 import rocks.shumyk.cassandra.tutorial.persistence.PersistenceOperation;
@@ -14,15 +14,44 @@ public class CmsOperationApplication {
 
     public static final String KEYSPACE_CMS = "cms";
     public static final String COLUMN_FAMILY_LISTINGS = "listings";
+    public static final String COLUMN_FAMILY_PRODUCTS = "products";
 
     public static final String USE_KEYSPACE = "USE %s";
     public static final String CREATE_KEYSPACE_QUERY_FORMAT = "CREATE KEYSPACE %s WITH replication={'class': 'SimpleStrategy', 'replication_factor':3};";
 
+    public static final String CREATE_COLUMN_FAMILY_LISTINGS_QUERY = "CREATE COLUMNFAMILY %s(" +
+            "listingId varchar," +
+            "sellerId varchar," +
+            "skuId varchar," +
+            "productId varchar," +
+            "mrp int," +
+            "ssp int," +
+            "sla int," +
+            "stock int," +
+            "title text," +
+            "PRIMARY KEY (productId, listingId));";
+    public static final String CREATE_COLUMN_FAMILY_PRODUCTS_QUERY = "CREATE COLUMNFAMILY %s(" +
+            "productId varchar," +
+            "brand varchar," +
+            "length int," +
+            "breadth int," +
+            "height int," +
+            "category varchar," +
+            "title text," +
+            "publisher text," +
+            "keyfeatures list<text>," +
+            "PRIMARY KEY (category, brand, productId));";
+
     public static void main(String[] args) {
-//        createKeyspace(KEYSPACE_CMS);
-//        createColumnFamily(KEYSPACE_CMS, COLUMN_FAMILY_LISTINGS);
-//        checkColumnFamilyCreated(KEYSPACE_CMS, COLUMN_FAMILY_LISTINGS);
+        createKeyspace(KEYSPACE_CMS);
+
+        createColumnFamily(KEYSPACE_CMS, COLUMN_FAMILY_LISTINGS, CREATE_COLUMN_FAMILY_LISTINGS_QUERY);
+        checkColumnFamilyCreated(KEYSPACE_CMS, COLUMN_FAMILY_LISTINGS);
         populateColumnFamilyWithData(KEYSPACE_CMS, COLUMN_FAMILY_LISTINGS, DummyData.dummyListing());
+
+        createColumnFamily(KEYSPACE_CMS, COLUMN_FAMILY_PRODUCTS, CREATE_COLUMN_FAMILY_PRODUCTS_QUERY);
+        checkColumnFamilyCreated(KEYSPACE_CMS, COLUMN_FAMILY_PRODUCTS);
+        populateColumnFamilyWithData(KEYSPACE_CMS, COLUMN_FAMILY_PRODUCTS, DummyData.dummyProducts());
 
         Connector.close();
     }
@@ -34,26 +63,18 @@ public class CmsOperationApplication {
         log.info("Keyspace '{}' created", keyspace);
     }
 
-    private static void createColumnFamily(final String keyspace, final String columnFamily) {
+    private static void createColumnFamily(final String keyspace,
+                                           final String columnFamily,
+                                           final String createColumnFamilyQuery) {
         final var session = Connector.getSession();
         log.info("logged keyspace: {}", session.getLoggedKeyspace());
 
         session.execute(String.format(USE_KEYSPACE, keyspace));
         log.info("logged keyspace: {}", session.getLoggedKeyspace());
 
-        final var createColumnFamilyQuery = "CREATE COLUMNFAMILY " + columnFamily + "(" +
-                "listingId varchar," +
-                "sellerId varchar," +
-                "skuId varchar," +
-                "productId varchar," +
-                "mrp int," +
-                "ssp int," +
-                "sla int," +
-                "stock int," +
-                "title text," +
-                "PRIMARY KEY (productId, listingId));";
-        session.execute(createColumnFamilyQuery);
+        session.execute(String.format(createColumnFamilyQuery, columnFamily));
         log.info("created column family '{}'", columnFamily);
+        session.close();
     }
 
     private static void checkColumnFamilyCreated(final String keyspace, final String columnFamilyName) {
@@ -69,12 +90,12 @@ public class CmsOperationApplication {
     // todo: make it more abstract (avoid Listing to more abstract data type)
     private static void populateColumnFamilyWithData(final String keyspace,
                                                      final String columnFamily,
-                                                     final List<Listing> data) {
+                                                     final List<? extends AttributeBasedData> data) {
         data.stream()
-                .map(Listing::finalizeAttributes)
+                .map(AttributeBasedData::finalizeAttributes)
                 .forEach(l -> PersistenceOperation
-                                .builder(keyspace, columnFamily)
-                                .insert(l));
+                        .builder(keyspace, columnFamily)
+                        .insert(l));
         log.info("Populated column family '{}.{}' with dummy data", keyspace, columnFamily);
     }
 }

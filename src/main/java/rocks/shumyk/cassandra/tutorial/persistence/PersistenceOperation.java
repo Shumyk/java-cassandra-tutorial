@@ -1,5 +1,6 @@
 package rocks.shumyk.cassandra.tutorial.persistence;
 
+import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.ThreadLocalMonotonicTimestampGenerator;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,7 @@ public class PersistenceOperation {
         values.forEach(insertStatement::value);
         insertStatement.setDefaultTimestamp(new ThreadLocalMonotonicTimestampGenerator().next());
 
-        Connector.getSession().execute(insertStatement);
+        executeAndClose(insertStatement);
     }
 
     public void delete(final String columnDeleteBy, final List<String> ids) {
@@ -26,6 +27,12 @@ public class PersistenceOperation {
                 .from(keyspace, columnFamily)
                 .where(QueryBuilder.in(columnDeleteBy, ids));
 
-        Connector.getSession().execute(deleteStatement);
+        executeAndClose(deleteStatement);
+    }
+
+    private void executeAndClose(final Statement insertStatement) {
+        final var session = Connector.getSession();
+        session.execute(insertStatement);
+        session.close();
     }
 }

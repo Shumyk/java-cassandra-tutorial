@@ -5,15 +5,15 @@ import com.google.common.collect.Maps;
 
 import java.util.Map;
 
-public record Listing(String listingId, Map<String, Object> attributes) implements AttributeBasedData {
+public record Product(String productId, Map<String, Object> attributes) implements AttributeBasedData {
 
-    public static Listing of(String listingId, Map<String, Object> attributes) {
-        return new Listing(listingId, attributes);
+    public static Product of(final String productId, final Map<String, Object> attributes) {
+        return new Product(productId, attributes);
     }
 
     public Map<String, Object> finalizeAttributes() {
         final var copyAttributes = Maps.newHashMap(attributes);
-        copyAttributes.put(AttributeName.LISTINGID.value(), listingId);
+        copyAttributes.put(AttributeName.PRODUCTID.value(), productId);
         return ImmutableMap.copyOf(copyAttributes);
     }
 }
