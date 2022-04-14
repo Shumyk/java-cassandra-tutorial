@@ -4,6 +4,7 @@ import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.HostDistance;
 import com.datastax.driver.core.PoolingOptions;
 import com.datastax.driver.core.Session;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -21,7 +22,7 @@ public class Connector {
     private static final int MAX_CONNECTIONS = 100;
     private static final int CORE_CONNECTIONS = 25;
 
-    private static Cluster cluster;
+    @Getter private static Cluster cluster;
 
     static {
         final PoolingOptions poolingOptions = new PoolingOptions();

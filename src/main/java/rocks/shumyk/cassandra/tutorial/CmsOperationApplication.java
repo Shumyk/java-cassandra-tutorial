@@ -3,6 +3,8 @@ package rocks.shumyk.cassandra.tutorial;
 import lombok.extern.slf4j.Slf4j;
 import rocks.shumyk.cassandra.tutorial.persistence.Connector;
 
+import java.util.Optional;
+
 @Slf4j
 public class CmsOperationApplication {
 
@@ -15,6 +17,7 @@ public class CmsOperationApplication {
     public static void main(String[] args) {
 //        createKeyspace(KEYSPACE_CMS);
         createColumnFamily(KEYSPACE_CMS, COLUMN_FAMILY_LISTINGS);
+        checkColumnFamilyCreated(KEYSPACE_CMS, COLUMN_FAMILY_LISTINGS);
 
         Connector.close();
     }
@@ -46,5 +49,15 @@ public class CmsOperationApplication {
                 "PRIMARY KEY (productId, listingId));";
         session.execute(createColumnFamilyQuery);
         log.info("created column family '{}'", columnFamily);
+    }
+
+    private static void checkColumnFamilyCreated(final String keyspace, final String columnFamilyName) {
+        final var keyspaceMetadata = Connector.getCluster().getMetadata().getKeyspace(keyspace);
+        Optional.of(keyspaceMetadata)
+                .map(k -> k.getTable(columnFamilyName))
+                .ifPresentOrElse(
+                        value -> log.info("column family '{}' exists in keyspace '{}'", columnFamilyName, keyspace),
+                        () -> log.info("column family '{}' doesn't exist.", columnFamilyName)
+                );
     }
 }
